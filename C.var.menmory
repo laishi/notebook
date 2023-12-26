@@ -1,0 +1,178 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// 全局变量，存放在 Data Segment 中，被初始化为10
+int global_variable = 10;
+
+// 静态全局变量，存放在 Data Segment 中，被初始化为20
+static int static_global_variable = 20;
+
+// 未初始化的全局变量，存放在 BSS 段
+int global_variable_uninitialized;
+
+// 未初始化的静态全局变量，存放在 BSS 段
+static int static_global_variable_uninitialized;
+
+// 字符串常量存放在常量区
+const char *message = "Hello, Constants Segment!";
+
+// 动态分配内存的结构体
+typedef struct {
+    int value;
+    char name[20];
+} DynamicData;
+
+int main() {
+    // 局部变量，存放在 Stack 中
+    int local_variable = 30;
+
+    // 静态局部变量，存放在 Data Segment 中，但作用域仅在该函数内
+    static int static_local_variable = 40;
+
+    // 动态分配一个整数的内存空间
+    int *dynamic_integer = (int *)malloc(sizeof(int));
+
+    if (dynamic_integer != NULL) {
+        // 在动态分配的内存中存储一个值
+        *dynamic_integer = 42;
+
+        // 输出动态分配的值
+        printf("Dynamic Integer: %d\n", *dynamic_integer);
+
+        // 释放动态分配的内存
+        free(dynamic_integer);
+    } else {
+        // 处理内存分配失败的情况
+        printf("Memory allocation failed\n");
+    }
+
+    // 未初始化的局部变量，存放在 Stack 中（不影响 BSS 段）
+    int local_variable_uninitialized;
+
+    // 未初始化的静态局部变量，存放在 BSS 段
+    static int static_local_variable_uninitialized;
+
+    // 输出各种变量的值
+    printf("Global Variable: %d\n", global_variable);
+    printf("Static Global Variable: %d\n", static_global_variable);
+    printf("Global Variable (Uninitialized): %d\n", global_variable_uninitialized);
+    printf("Static Global Variable (Uninitialized): %d\n", static_global_variable_uninitialized);
+    printf("Local Variable: %d\n", local_variable);
+    printf("Static Local Variable: %d\n", static_local_variable);
+    printf("Local Variable (Uninitialized): %d\n", local_variable_uninitialized);
+
+    // 调用 add 函数，并输出结果
+    int result = add(local_variable, 20);
+    printf("Result: %d\n", result);
+
+    // 输出字符串常量
+    printf("Constants Segment Message: %s\n", message);
+
+    // 动态分配结构体，并输出其中的数据
+    DynamicData *dynamic_struct = (DynamicData *)malloc(sizeof(DynamicData));
+
+    if (dynamic_struct != NULL) {
+        dynamic_struct->value = 100;
+        snprintf(dynamic_struct->name, sizeof(dynamic_struct->name), "Dynamic Data");
+
+        printf("Dynamic Struct: value=%d, name=%s\n", dynamic_struct->value, dynamic_struct->name);
+
+        free(dynamic_struct);
+    } else {
+        printf("Memory allocation for dynamic struct failed\n");
+    }
+
+    return 0;
+}
+
+// 一个简单的函数，接受两个参数并返回它们的和
+int add(int a, int b) {
+    // 局部变量 x 存放在栈上
+    int x = 5;
+
+    // 返回 a、b 和 x 的和
+    return a + b + x;
+}
+
+
+
+
++----------------------+
+| Code Segment         | (程序执行代码)
+|                      |
+|    +-----------------+
+|    | section .text   |
+|    | global _start   |
+|    | _start:         |
+|    |   mov eax, 4    | (syscall: write)
+|    |   mov ebx, 1    | (file descriptor: stdout)
+|    |   mov ecx, ...  | (pointer to the message)
+|    |   mov edx, ...  | (length of the message)
+|    |   int 0x80      | (interrupt to invoke syscall)
+|    |   mov eax, 1    | (syscall: exit)
+|    |   xor ebx, ebx  | (exit code 0)
+|    |   int 0x80      | (interrupt to invoke syscall)
+|    +-----------------+
+|                      |
++----------------------+
+
++----------------------+
+| Data Segment         | (初始化的全局变量和静态变量)
+|                      |
+|    +-----------------+
+|    | section .data   |
+|    | global_variable | (initialized to 10)
+|    | static_global_var| (initialized to 20)
+|    | message db ...  | (Hello, Code Segment!)
+|    | ...             |
+|    +-----------------+
+|                      |
++----------------------+
+
++----------------------+
+| BSS Segment          | (未初始化的全局变量和静态变量)
+|                      |
+|    +-----------------+
+|    | section .bss    |
+|    | global_var_unini| (uninitialized)
+|    | static_global_uni| (uninitialized)
+|    | ...             |
+|    +-----------------+
+|                      |
++----------------------+
+
++----------------------+
+| Heap                 | (动态分配的内存)
+|                      |
+|    +-----------------+
+|    | malloc(sizeof(int)) | (allocated dynamic integer)
+|    | dynamic_integer | (pointing to dynamic memory)
+|    | ...             |
+|    +-----------------+
+|                      |
++----------------------+
+
++----------------------+
+| Stack                | (局部变量、函数参数和函数调用信息)
+|                      |
+|    +-----------------+
+|    | main function   | (main 函数栈帧)
+|    | local_variable  | (stack variable)
+|    | static_local_var| (static local variable)
+|    | dynamic_struct  | (pointer on the stack)
+|    | ...             |
+|    +-----------------+
+|                      |
++----------------------+
+
++----------------------+
+| Constants Segment    | (字符串常量)
+|                      |
+|    +-----------------+
+|    | section .data   |
+|    | message db ...  | (Hello, Constants Segment!)
+|    | ...             |
+|    +-----------------+
+|                      |
++----------------------+
+
