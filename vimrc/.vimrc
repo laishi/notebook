@@ -1,0 +1,103 @@
+syntax on
+set relativenumber 
+set clipboard=unnamed
+set number
+set expandtab
+set smarttab
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
+autocmd FileType * setlocal tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+"Enable CursorLine
+set cursorline
+hi CursorLine  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi CursorLineNr  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi Normal guibg=NONE ctermbg=NONE
+hi NonText guibg=NONE ctermbg=NONE
+hi LineNr guibg=NONE ctermbg=NONE
+
+set showmatch
+highlight MatchParen cterm=reverse ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+
+nnoremap <A-Down> :m .+1<CR>==
+nnoremap <A-Up> :m .-2<CR>==
+inoremap <A-Down> <Esc>:m .+1<CR>==gi
+inoremap <A-Up> <Esc>:m .-2<CR>==gi
+vnoremap <A-Down> :m '>+1<CR>gv=gv
+vnoremap <A-Up> :m '<-2<CR>gv=gv
+
+nnoremap <S-C-A-F> :LspDocumentFormat<CR>
+inoremap <S-C-A-F> <Esc>:LspDocumentFormat<CR>
+vnoremap <S-C-A-F> <Esc>:LspDocumentFormat<CR>
+" 编译并运行 C 代码
+nnoremap <S-C-C> :w<CR>:!gcc % -o %< && ./%< <CR>
+
+" 编译并运行 Rust 代码
+nnoremap <S-C-R> :w<CR>:!rustc % && ./%< <CR>
+
+
+call plug#begin()
+
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+Plug 'voldikss/vim-floaterm'
+Plug 'terryma/vim-multiple-cursors'
+call plug#end()
+
+
+" vim-lsp config
+let g:lsp_document_highlight_enabled = 0
+let g:lsp_diagnostics_enabled = 0         " disable diagnostics support
+function! s:on_lsp_buffer_enabled() abort
+    setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    nmap <buffer> K <plug>(lsp-hover)
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+
+    let g:lsp_format_sync_timeout = 1000
+    autocmd! BufWritePre *.c *.rs,*.go call execute('LspDocumentFormatSync')
+
+    " refer to doc to add more commands
+endfunction
+
+" UltiSnip
+let g:UltiSnipsEnableSnipMate = 1
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+
+" FLOATEERM
+let g:floaterm_borderchars = get(g:, 'floaterm_borderchars', '─│─│╭╮╯╰')
+let g:floaterm_keymap_toggle = "`"
+
+if &term =~ '^xterm'
+  " Normal mode cursor style
+  let &t_EI .= "\<Esc>[6 q"
+
+  " Insert mode cursor style
+  let &t_SI .= "\<Esc>[6 q"
+endif
+
+" Set floaterm terminal cursor style to vertical bar
+autocmd BufEnter,WinEnter,InsertLeave * if &buftype == 'terminal' | set guicursor+=n-v-c:ver20-Cursor | endif
+autocmd BufLeave,WinLeave,InsertEnter * if &buftype == 'terminal' | set guicursor-=n-v-c:ver20-Cursor | endif
+

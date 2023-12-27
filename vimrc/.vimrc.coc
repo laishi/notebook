@@ -1,0 +1,83 @@
+syntax on
+set clipboard=unnamed
+set number
+set relativenumber
+set expandtab
+set smarttab
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
+autocmd FileType * setlocal tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+"Enable CursorLine
+set cursorline
+hi CursorLine  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi CursorLineNr  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi Normal guibg=NONE ctermbg=NONE
+hi NonText guibg=NONE ctermbg=NONE
+hi LineNr guibg=NONE ctermbg=NONE
+
+set showmatch
+highlight MatchParen cterm=reverse ctermbg=white ctermfg=black gui=NONE guibg=NONE guifg=NONE
+
+nnoremap <A-Down> :m .+1<CR>==
+nnoremap <A-Up> :m .-2<CR>==
+inoremap <A-Down> <Esc>:m .+1<CR>==gi
+inoremap <A-Up> <Esc>:m .-2<CR>==gi
+vnoremap <A-Down> :m '>+1<CR>gv=gv
+vnoremap <A-Up> :m '<-2<CR>gv=gv
+
+" 编译并运行 C 代码
+nnoremap <S-C-C> :w<CR>:!gcc % -o %< && ./%< <CR>
+
+" 编译并运行 Rust 代码
+nnoremap <S-C-R> :w<CR>:!rustc % && ./%< <CR>
+
+call plug#begin()
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'honza/vim-snippets'
+Plug 'voldikss/vim-floaterm'
+Plug 'terryma/vim-multiple-cursors'
+call plug#end()
+
+let g:coc_global_extensions = ['coc-json', 'coc-prettier', 'coc-ultisnips', 'coc-marketplace', 'coc-rust-analyzer', 'coc-clangd', 'coc-vimlsp']
+hi Pmenu cterm=NONE ctermfg=250 ctermbg=235 gui=underline guifg=#bcbcbc guibg=#262626
+hi PmenuSel cterm=NONE ctermfg=250 ctermbg=131 gui=underline guifg=#bcbcbc guibg=#af5f5f
+
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+
+" Make <CR> to accept selected completion item or notify coc.nvim to format
+" <C-g>u breaks current undo, please make your own choice
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#_select_confirm() :
+      \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
+      \ CheckBackspace() ? "\<TAB>" :
+      \ coc#refresh()
+
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+let g:coc_snippet_next = '<tab>'
+
+
+let g:floaterm_borderchars = get(g:, 'floaterm_borderchars', '─│─│╭╮╯╰')
+let g:floaterm_keymap_toggle = "`"
+if &term =~ '^xterm'
+  " Normal mode cursor style
+  let &t_EI .= "\<Esc>[6 q"
+
+  " Insert mode cursor style
+  let &t_SI .= "\<Esc>[6 q"
+endif
+" Set floaterm terminal cursor style to vertical bar
+autocmd BufEnter,WinEnter,InsertLeave * if &buftype == 'terminal' | set guicursor+=n-v-c:block-Cursor | endif
+autocmd BufLeave,WinLeave,InsertEnter * if &buftype == 'terminal' | set guicursor-=n-v-c:block-Cursor | endif
+
