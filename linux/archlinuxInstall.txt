@@ -1,0 +1,137 @@
+Windows从硬盘引导安装系统
+
+下载系统ISO文件,把ISO文件中的内容全部复制到一个单独的硬盘等待引导
+
+终端执行:shutdown /r /f /o /t 0
+
+"Troubleshoot > Advanced options > Command Prompt"
+"故障排除 > 高级选项 > 命令提示符"
+
+diskpart 检查分区情况
+list vol
+
+D:\setup
+D是系统引导盘
+
+常规安装到结束
+
+
+
+
+
+
+
+
+
+
+https://wiki.archlinux.org/title/Installation_guide
+
+ventoy安装到usb要选GPT
+
+; ARCHLINUX 安装 ISO 文件要到美国区域下载才能使用
+引导进入root@archiso ~#
+
+root@archiso ~# fdisk -l 查看磁盘分区情况,或者
+root@archiso ~# lsblk 显示分区列表
+root@archiso ~# cfdisk 图形化分区工具
+
+
+
+EFI系统分区 (/mnt/boot1)：
+    Partition: /dev/efi_system_partition
+    Partition type: EFI system partition
+    Suggested size: 至少600 MiB。如果将安装多个内核，则建议至少1 GiB。
+
+此分区是EFI系统分区，用于存储引导加载程序和其他引导相关文件。在UEFI系统中，它通常是FAT32文件系统。
+
+Linux交换分区 ([SWAP])：
+    Partition: /dev/swap_partition
+    Partition type: Linux swap
+    Suggested size: 大于12G
+
+交换分区用于操作系统的交换空间，可以帮助管理系统的内存。
+
+Linux x86-64根分区 (/mnt)：
+    Partition: /dev/root_partition
+    Partition type: Linux x86-64 root (/)
+    Suggested size: 设备的其余部分
+
+这是操作系统的根分区，包含整个文件系统。
+
+
+
+
+
+
+
+
+
+mkfs.ext4 /dev/sda7 root分区
+mkswap /dev/sda6  swap分区
+
+
+
++-----+---+-------+
+| Alt |   | Symbol|
++-----+---+-------+
+|  33 | ! |   !   |
+|  34 | " |   "   |
+|  35 | # |   #   |
+|  36 | $ |   $   |
+|  37 | % |   %   |
+|  38 | & |   &   |
+|  39 | ' |   '   |
+|  40 | ( |   (   |
+|  41 | ) |   )   |
+|  42 | * |   *   |
++-----+---+-------+
+
+mount /dev/sda7 /mnt
+# 如果你的 EFI 系统分区在 /dev/sda1 上
+mkdir /mnt/efi
+mount /dev/sda1 /mnt/efi
+swapon /dev/sda6
+
+
+# 开始安装系统
+pacstrap -K /mnt base linux linux-firmware sof-firmware base-devel grub efibootmgr vim networkmanager intel-ucode
+
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=grub
+grub-mkconfig -o /boot/grub/grub.cfg
+
+
+genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt
+
+# 在重庆的时区是 "Asia/Shanghai"。因此，你可以使用以下命令将系统时区设置为重庆：
+
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+hwclock --systohc
+
+# Localization
+vim /etc/locale.gen
+添加:en_US.UTF-8 UTF-8
+locale-gen
+
+vim /etc/locale.conf
+添加:LANG=en_US.UTF-8
+
+vim /etc/vconsole.conf
+KEYMAP=de-latin1
+
+vim /etc/hostname
+laishiarch
+
+mkinitcpio -P
+
+passwd
+
+useradd -m -G wheel laishi
+
+
+sudo grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+
+安装Hyprland
+wget -c https://github.com/hyprwm/Hyprland/releases/download/v0.32.3/v0.32.3.tar.gz
