@@ -1,0 +1,150 @@
+syntax on
+set relativenumber 
+set clipboard=unnamed
+set number
+set hlsearch
+autocmd FileType * setlocal tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+set splitright
+
+"Enable CursorLine
+set cursorline
+hi CursorLine  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi LineNr         term=underline ctermfg=Gray     guifg=Brown
+hi CursorLineNr  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+hi VertSplit term=NONE cterm=NONE gui=reverse
+
+
+set showmatch
+highlight MatchParen cterm=NONE ctermbg=LightGray ctermfg=Black gui=NONE guibg=NONE guifg=NONE
+highlight Comment cterm=None ctermfg=LightGray ctermbg=NONE
+
+
+" POP MENU
+hi Pmenu          ctermfg=LightGray ctermbg=Black guibg=Magenta
+hi PmenuSel       ctermfg=0 ctermbg=7 guibg=Grey
+hi PmenuSbar      ctermbg=Black guibg=NONE
+hi PmenuThumb     ctermbg=0 guibg=Black
+
+
+
+" 设置 Leader 键为逗号
+let mapleader = ","
+
+" 在不同文件类型下定义 <leader>r 的映射
+autocmd FileType c nnoremap <leader>r :w<CR>:!gcc % -o %< && ./%< <CR>
+autocmd FileType rust nnoremap <leader>r :w<CR>:!rustc % && ./%< <CR>
+autocmd FileType python nnoremap <leader>r :w<CR>:!python3 % <CR>
+
+
+nnoremap <A-Down> :m .+1<CR>==
+nnoremap <A-Up> :m .-2<CR>==
+inoremap <A-Down> <Esc>:m .+1<CR>==gi
+
+inoremap <A-Up> <Esc>:m .-2<CR>==gi
+vnoremap <A-Down> :m '>+1<CR>gv=gv
+vnoremap <A-Up> :m '<-2<CR>gv=gv
+
+" 映射 LspDocumentFormat 到 <leader>f
+nnoremap <leader>f :LspDocumentFormat<CR>
+inoremap <leader>f <Esc>:LspDocumentFormat<CR>
+vnoremap <leader>f <Esc>:LspDocumentFormat<CR>
+
+" Plug
+call plug#begin()
+
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
+Plug 'prabirshrestha/asyncomplete.vim'
+Plug 'prabirshrestha/asyncomplete-lsp.vim'
+
+Plug 'maralla/completor.vim'
+
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+Plug 'voldikss/vim-floaterm'
+Plug 'terryma/vim-multiple-cursors'
+
+Plug 'preservim/tagbar'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+call plug#end()
+
+" 使用 <Leader>t 切换 Tagbar
+nmap <Leader>t :TagbarToggle<CR>
+
+
+" TAB AUTO
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+
+" UltiSnip
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<tab>"
+let g:UltiSnipsJumpBackwardTrigger="<S-Tab>"
+
+
+" VIM-LSP
+let g:lsp_diagnostics_enabled = 1
+let g:lsp_document_highlight_enabled = 1
+highlight lspReference ctermfg=red guifg=red ctermbg=green guibg=green
+function! s:on_lsp_buffer_enabled() abort
+    " 设置本地 omnifunc 为 LSP 的完成函数
+    setlocal omnifunc=lsp#complete
+    " 启用本地的 signcolumn（用于显示符号列）
+    setlocal signcolumn=no
+    " 如果存在 '+tagfunc'，则设置本地 tagfunc 为 LSP 的 tagfunc
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    " 映射 gd 到跳转到定义
+    nmap <buffer> gd <plug>(lsp-definition)
+    " 映射 gs 到文档内符号搜索
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    " 映射 gS 到工作区符号搜索
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    " 映射 gr 到引用搜索
+    nmap <buffer> gr <plug>(lsp-references)
+    " 映射 gi 到实现搜索
+    nmap <buffer> gi <plug>(lsp-implementation)
+    " 映射 gt 到类型定义
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    " 映射 <leader>rn 到重命名
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    " 映射 [g 到上一个诊断信息
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    " 映射 ]g 到下一个诊断信息
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    " 映射 K 到悬停信息
+    nmap <buffer> K <plug>(lsp-hover)
+    " 映射 <expr><c-f> 到向下滚动
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    " 映射 <expr><c-d> 到向上滚动
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+
+    " 设置 LSP 格式同步的超时时间
+    let g:lsp_format_sync_timeout = 1000
+    " 在保存文件前调用 LSP 格式化同步
+    autocmd! BufWritePre *.c,*.rs,*.go call execute('LspDocumentFormatSync')
+
+    " 请参考文档添加更多命令
+
+endfunction
+
+augroup lsp_install
+    au!
+    " 当 LSP 缓冲区启用时调用 s:on_lsp_buffer_enabled()
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
+
+" FLOATEERM
+let g:floaterm_borderchars = get(g:, 'floaterm_borderchars', '─│─│╭╮╯╰')
+let g:floaterm_keymap_toggle = "`"
+
+if &term =~ '^xterm'
+  " Normal mode cursor style
+  let &t_EI .= "\<Esc>[6 q"
+
+  " Insert mode cursor style
+  let &t_SI .= "\<Esc>[6 q"
+endif
+
