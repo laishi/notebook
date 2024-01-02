@@ -1,10 +1,12 @@
 #include <stdio.h>
 
+Aa
+
 // 函数：打印数组
 void printArray(int arr[], int size) {
     for (int i = 0; i < size; ++i) {
         printf("%d ", arr[i]);
-    }
+ }
     printf("\n");
 }
 
@@ -69,7 +71,7 @@ int main() {
 
     // 数组的求和
     int sum = sumArray(myArray, 5);
-    printf("Sum of array elements: %d\n", sum);
+    printf("sum of array elements: %d\n", sum);
 
     // 查找数组中的最大值和最小值
     int max, min;

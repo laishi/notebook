@@ -2,9 +2,10 @@
 #include <stdlib.h>
 
 
+
 // 定义链表节点
 struct Node {
-    int data;           // 存储数据
+    int da  // 存储数据
     struct Node* next;   // 指向下一个节点的指针
 };
 

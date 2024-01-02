@@ -1,0 +1,53 @@
+Hello, file I/O!#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+int main() {
+    // 创建套接字
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == -1) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // 设置服务器地址结构
+    struct sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(8080);  // 使用端口 8080
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+    // 绑定套接字
+    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // 监听连接
+    if (listen(serverSocket, 3) == -1) {
+        perror("Listen failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Server listening on port 8080...\n");
+
+    // 等待客户端连接
+    int clientSocket = accept(serverSocket, NULL, NULL);
+    if (clientSocket == -1) {
+        perror("Accept failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // 从客户端接收数据
+    char buffer[1024] = {0};
+    read(clientSocket, buffer, sizeof(buffer));
+    printf("Received from client: %s\n", buffer);
+
+    // 关闭套接字
+    close(serverSocket);
+    close(clientSocket);
+
+    return 0;
+}
+
