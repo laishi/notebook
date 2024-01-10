@@ -1,40 +1,38 @@
-syntax on
+
+" 设置 Leader 键为逗号
+let mapleader = ";"
+
+autocmd! bufwritepost $MYVIMRC source $MYVIMRC
+"syntax on
+"set background=dark
 set relativenumber
 set clipboard=unnamed
 set number
+set showcmd
 set hlsearch
-autocmd FileType * setlocal tabstop=4 softtabstop=4 shiftwidth=4 expandtab
+set incsearch
 set splitright
+set wildmode=longest,list,full
 set wildmenu
-
-"Enable CursorLine
-set cursorline
-hi CursorLine  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
-hi LineNr         term=underline ctermfg=Gray     guifg=Brown
-hi CursorLineNr  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
-hi VertSplit term=NONE cterm=NONE gui=reverse
-
-
-set showmatch
-highlight MatchParen cterm=NONE ctermbg=DarkBlue ctermfg=White gui=NONE guibg=NONE guifg=NONE
-highlight Comment cterm=None ctermfg=LightGray ctermbg=NONE
-
-
-" POP MENU
-hi Pmenu          ctermfg=LightGray ctermbg=Black guibg=Magenta
-hi PmenuSel       ctermfg=0 ctermbg=7 guibg=Grey
-hi PmenuSbar      ctermbg=Black guibg=NONE
-hi PmenuThumb     ctermbg=0 guibg=Black
+set autoindent
+set cindent
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set smarttab
 
 
 
-" 设置 Leader 键为逗号
-let mapleader = ","
+nnoremap <Leader>n :set relativenumber! number!<CR>
 
 " 在不同文件类型下定义 <leader>r 的映射
-autocmd FileType c nnoremap <leader>r :w<CR>:!gcc % -o %< && ./%< <CR>
-autocmd FileType rust nnoremap <leader>r :w<CR>:!rustc % && ./%< <CR>
-autocmd FileType python nnoremap <leader>r :w<CR>:!python3 % <CR>
+autocmd FileType c nnoremap <leader>' :w<CR>:!gcc % -o %< && ./%< <CR>
+autocmd FileType rust nnoremap <leader>' :w<CR>:!rustc % && ./%< <CR>
+autocmd FileType python nnoremap <leader>' :w<CR>:!python3 % <CR>
+autocmd FileType javascript nnoremap <leader>' :w<CR>:!node % <CR>
+
+autocmd FileType sh nnoremap <leader>' :w<CR>:!bash %<CR>
 
 
 nnoremap <A-Down> :m .+1<CR>==
@@ -64,46 +62,69 @@ Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 
 Plug 'voldikss/vim-floaterm'
-Plug 'terryma/vim-multiple-cursors'
 
+Plug 'terryma/vim-multiple-cursors'
 Plug 'preservim/tagbar'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
+Plug 'easymotion/vim-easymotion'
+
+Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 call plug#end()
+
+
+
+
+let g:lightline = {'colorscheme': 'catppuccin_mocha'}
 
 " VIM LSP
 let g:lsp_diagnostics_enabled = 0
 let g:lsp_document_highlight_enabled = 0 
-highlight lspReference ctermfg=red guifg=red ctermbg=Black guibg=green
+"highlight lspReference ctermfg=red guifg=red ctermbg=Black guibg=green
 
 " 使用 <Leader>t 切换 Tagbar
-nmap <Leader>t :TagbarToggle<CR>
-
+nmap <Leader>t :w<CR>:TagbarToggle<CR>
 " COMPLETOR
 map <tab> <Plug>CompletorCppJumpToPlaceholder
 imap <tab> <Plug>CompletorCppJumpToPlaceholder
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
 
 " UltiSnip 代码展开
 let g:UltiSnipsExpandTrigger="<CR>"
 " let g:UltiSnipsExpandTrigger="<tab>"
-" let g:UltiSnipsJumpForwardTrigger="<tab>"
-" let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
-" let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsJumpForwardTrigger="<S-tab>"
+let g:UltiSnipsJumpBackwardTrigger="<C-tab>"
+let g:UltiSnipsEditSplit="vertical"
 
 " TAB AUTO
+" inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 " FLOATEERM
 let g:floaterm_borderchars = get(g:, 'floaterm_borderchars', '─│─│╭╮╯╰')
-let g:floaterm_keymap_toggle = "`"
+" nnoremap <silent> ` :w<CR>:FloatermToggle<CR>
+" tnoremap <silent> ` <C-\><C-n>:FloatermToggle<CR>
+" nnoremap <silent> <Leader>g :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center --autoclose=2 gcc % -o %< && ./%<<CR>
+" tnoremap <silent> <Leader>x <C-\><C-n>:FloatermKill<CR>
 
-if &term =~ '^xterm'
-  " Normal mode cursor style
-  let &t_EI .= "\<Esc>[6 q"
+noremap <silent> <Leader>f :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center <CR>
+autocmd FileType c noremap <silent> ` :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center --autoclose=2 gcc % -o %< && ./%<<CR>
+autocmd FileType rust noremap <silent> ` :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center --autoclose=2 rust % && ./%<<CR>
+autocmd FileType python noremap <silent> ` :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center --autoclose=2 python3 %<<CR>
+autocmd FileType javascript noremap <silent> ` :w<CR>:FloatermNew! --name=output --height=0.8 --width=0.6 --wintype=float --position=center --autoclose=2 node %<<CR>
+tnoremap <silent> ` <C-\><C-n>:FloatermKill<CR>
+tnoremap <silent> <Leader>f <C-\><C-n>:FloatermKill<CR>
 
-  " Insert mode cursor style
-  let &t_SI .= "\<Esc>[6 q"
-endif
 
+
+" source ~/.vim/syntax/c.vim
+source ~/.vim/color/hi.vim
+"Enable CursorLine
+" set cursorline
+" hi CursorLine  cterm=bold ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+" hi CursorLineNr  cterm=NONE ctermbg=NONE ctermfg=NONE gui=NONE guibg=NONE guifg=NONE
+
+" hi Type term=NONE ctermfg=1
