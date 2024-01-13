@@ -1,0 +1,1 @@
+Start-Job -ScriptBlock { scrcpy --tcpip=192.168.0.200:5555 -S --window-borderless --window-x=0 --window-y=0 --window-height=2904}
