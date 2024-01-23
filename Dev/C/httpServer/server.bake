@@ -1,0 +1,178 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define DEFAULT_PORT 8080
+#define PORT (argc > 1 ? atoi(argv[1]) : DEFAULT_PORT)  // 如果提供端口参数则使用，否则使用默认端口
+#define BUFFER_SIZE 1024
+
+
+struct CookieData {
+    char site[50];
+    int id;
+    char login[100];
+};
+
+void send_file(int client_socket, const char* file_path) {
+    int file_descriptor = open(file_path, O_RDONLY);
+    if (file_descriptor == -1) {
+        perror("Error opening file");
+        return;
+    }
+    char buffer[BUFFER_SIZE];
+    ssize_t bytes_read;
+    // Read and send the file in chunks
+    while ((bytes_read = read(file_descriptor, buffer, sizeof(buffer))) > 0) {
+        send(client_socket, buffer, bytes_read, 0);
+    }
+    // Close the file
+    close(file_descriptor);
+}
+
+
+// 修改handle_request函数以设置Cookie
+void handle_request(int client_socket, struct CookieData* cookie_data) {
+    char buffer[BUFFER_SIZE];
+    ssize_t bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
+    if (bytes_received > 0) {
+        const char *cookie_header = strstr(buffer, "Cookie:");
+
+        if (cookie_header) {
+            printf("cookie_header = %s\n", cookie_header);
+        }
+
+        // 解析HTTP请求，获取方法和路径
+        char method[10], path[255];
+        sscanf(buffer, "%s %s", method, path);
+        int is_get = strcmp(method, "GET") == 0;
+        char request_path[512] = "gald";
+
+        if (strcmp(path, "/") == 0) {
+            char *index = "/index.html";
+            strcpy(path, index);
+        }
+
+        strcat(request_path, path);
+        printf("File path = %s\n", request_path);
+
+        if (is_get) {
+            char* content_type = "text/plain";  // 默认为纯文本
+            // 根据文件扩展名设置不同的Content-Type
+            char* file_extension = strrchr(request_path, '.');
+            if (file_extension != NULL) {
+                if (strcmp(file_extension, ".html") == 0) {
+                    content_type = "text/html";
+                } else if (strcmp(file_extension, ".css") == 0) {
+                    content_type = "text/css";
+                } else if (strcmp(file_extension, ".js") == 0) {
+                    content_type = "application/js";
+                } else if (strcmp(file_extension, ".json") == 0) {
+                    content_type = "application/json";
+                } else if (strcmp(file_extension, ".jpg") == 0 || strcmp(file_extension, ".jpeg") == 0) {
+                    content_type = "image/jpeg";
+                } else if (strcmp(file_extension, ".png") == 0) {
+                    content_type = "image/png";
+                }
+                // 添加其他文件类型的判断和设置
+            }
+
+            // 构建响应头
+            char response_header[512];
+            snprintf(response_header, sizeof(response_header),
+                     "HTTP/1.1 200 OK\r\nContent-Type: %s\r\n", content_type);
+
+            // 设置Cookie
+            snprintf(response_header + strlen(response_header), sizeof(response_header) - strlen(response_header),
+                     "Set-Cookie: site=%s; id=%d; login=%s; path=/\r\n", cookie_data->site, cookie_data->id, cookie_data->login);
+
+            // 结束响应头
+            strcat(response_header, "\r\n");
+
+            // 发送响应头
+            send(client_socket, response_header, strlen(response_header), 0);
+
+            // 发送文件内容
+            send_file(client_socket, request_path);
+        }
+    }
+    // 关闭客户端套接字
+    close(client_socket);
+}
+
+
+int main(int argc, char *argv[]) {
+
+
+    // 创建CookieData结构体并填充数据
+    struct CookieData my_cookie_data;
+    strcpy(my_cookie_data.site, "gald");
+    my_cookie_data.id = 385;
+    strcpy(my_cookie_data.login, "你已经成功登录");
+
+
+
+
+
+
+
+
+    int server_socket, client_socket;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
+
+    // 检查命令行参数是否正确
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    // Create socket
+    if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("Error creating socket");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up server address struct
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(PORT);
+
+    // Bind socket
+    if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Error binding socket");
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(server_socket, 10) == -1) {
+        perror("Error listening for connections");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Server listening on http://127.0.0.1:%d\n", PORT);
+
+    while (1) {
+        // Accept a client connection
+        client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_len);
+        if (client_socket == -1) {
+            perror("Error accepting connection");
+            continue;
+        }
+
+        // Handle the client request
+        handle_request(client_socket, &my_cookie_data);
+    }
+
+    // Close the server socket
+    close(server_socket);
+
+    return 0;
+}
+
