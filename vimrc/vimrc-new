@@ -32,6 +32,9 @@ inoremap <A-Up> <Esc>:m .-2<CR>==gi
 vnoremap <A-Down> :m '>+1<CR>gv=gv
 vnoremap <A-Up> :m '<-2<CR>gv=gv
 
+nnoremap <silent> <leader>c :silent %w !xclip -selection clipboard<CR>
+vnoremap <silent> <leader>c :silent w !xclip -selection clipboard<CR>
+
 " 映射 LspDocumentFormat 到 <leader>f
 nnoremap <leader>[ :LspDocumentFormat<CR>
 inoremap <leader>[ <Esc>:LspDocumentFormat<CR>
@@ -84,10 +87,8 @@ let g:lightline = {'colorscheme': 'catppuccin_mocha'}
 " VIM LSP
 let g:lsp_diagnostics_enabled = 0
 let g:lsp_document_highlight_enabled = 1
+highlight lspReference ctermfg=red guifg=red ctermbg=black guibg=black
 
-" let g:lsp.bLspDocumentForma({options={tabSize=4}})
-
-"highlight lspReference ctermfg=red guifg=red ctermbg=Black guibg=green
 
 " 使用 <Leader>t 切换 Tagbar
 nmap <Leader>t :w<CR>:TagbarToggle<CR>
@@ -102,8 +103,8 @@ set omnifunc=syntaxcomplete#Complete
 
 " let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsExpandTrigger="<CR>"
-let g:UltiSnipsJumpForwardTrigger="<S-tab>"
-let g:UltiSnipsJumpBackwardTrigger="<C-tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 let g:UltiSnipsEditSplit="vertical"
 
 " TAB AUTO
@@ -131,7 +132,7 @@ if &filetype ==# 'c' || &filetype ==# 'rust' || &filetype ==# 'python' || &filet
     autocmd FileType javascript nnoremap <silent>` :w<CR>:FloatermNew! node %<CR>
 
     autocmd FileType c nnoremap ~ :w<CR>:!gcc % -o %< && ./%<<CR>
-    autocmd FileType rust nnoremap <leader>' :w<CR>:!cargo run<CR>
+    autocmd FileType rust nnoremap <leader>` :w<CR>:!cargo run<CR>
     autocmd FileType rust nnoremap ~ :w<CR>:!rustc % && ./%<<CR>
     autocmd FileType python nnoremap ~ :w<CR>:!python3 %<CR>
     autocmd FileType javascript nnoremap ~ :w<CR>:!node %<CR>
