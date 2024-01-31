@@ -138,12 +138,6 @@ if &filetype ==# 'c' || &filetype ==# 'rust' || &filetype ==# 'python' || &filet
     autocmd FileType javascript nnoremap ~ :w<CR>:!node %<CR>
 endif
 
-
-
-
-
-
-
 source ~/.vim/color/hi.vim
 
 " let g:neosolarized_boldasbright = 0
