@@ -1,0 +1,22 @@
+R_DEF: Internal format may change without notice
+local
+color colorAccent
+color colorPrimary
+color colorPrimaryDark
+drawable ic_launcher_foreground
+drawable my_image
+id appwidget_image
+id appwidget_text
+id button
+id editText
+id fab
+id listView
+id textView
+layout activity_main
+layout my_appwidget
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+string fab_desc
+style AppTheme
+xml my_appwidget_info
