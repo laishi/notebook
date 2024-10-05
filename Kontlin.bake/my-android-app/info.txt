@@ -1,6 +1,0 @@
-vim /home/ruhua/Temp/android/my-android-app/app/src/main/java/com/example/myapplication/MyAppWidgetProvider.kt
-vim /home/ruhua/Temp/android/my-android-app/app/src/main/res/layout/my_appwidget.xml
-
-vim /home/ruhua/Temp/android/my-android-app/app/src/main/res/xml/my_appwidget_info.xml
-
-vim /home/ruhua/Temp/android/my-android-app/app/src/main/AndroidManifest.xml
