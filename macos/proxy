@@ -1,0 +1,4 @@
+networksetup -getwebproxy "Wi-Fi"
+echo "proxyon" && networksetup -setwebproxystate "Wi-Fi" on && networksetup -setsecurewebproxystate "Wi-Fi" on
+echo "proxyoff" && networksetup -setwebproxystate "Wi-Fi" off && networksetup -setsecurewebproxystate "Wi-Fi" off
+
